@@ -1,0 +1,1126 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>PLL Trainer (local)</title>
+	<style>
+		/*
+		========================================================================
+		PLL Trainer - geannoteerde HTML/CSS-versie
+		========================================================================
+		Doel van dit document:
+		- dezelfde structuur behouden als je werkende layout
+		- de HTML en CSS logisch groeperen
+		- Nederlandstalige commentaar toevoegen waar dat nuttig is
+		- dubbele / verouderde CSS zichtbaar uitcommentariëren zodat je later
+		  veilig kan beslissen wat definitief weg mag
+
+		Belangrijk:
+		- dit document is bedoeld als leer- en onderhoudsversie
+		- de actieve code volgt je huidige werkende layout
+		- oude of overbodige CSS staat waar zinvol in commentaar, niet verwijderd
+		*/
+
+
+		/* =====================================================================
+		   1) DESIGN TOKENS / GLOBALE VARIABELEN
+		   =====================================================================
+		   Hier staan alle herbruikbare kleuren en layoutmaten.
+		   Groot voordeel: als je later één tint of kolombreedte wil wijzigen,
+		   hoef je dat maar op één plaats te doen.
+		*/
+		:root {
+			--bg: #111827;
+			--panel: #1f2937;
+			--panel-2: #0f172a;
+			--border: #374151;
+			--text: #e5e7eb;
+			--muted: #94a3b8;
+			--neon-cyan: #22d3ee;
+			--neon-blue: #60a5fa;
+			--neon-green: #22c55e;
+			--neon-red: #f43f5e;
+			--neon-amber: #f59e0b;
+
+			/*
+			Kolommen van de eerste en tweede “deck”-rij.
+			Door deze variabelen te delen, blijven de bovenste en tweede rij
+			 mooi op elkaar uitgelijnd.
+			*/
+			--top-col-1: 340px;   /* Cube */
+			--top-col-2: 1.15fr;  /* Answer grid */
+			--top-col-3: 360px;   /* Stats */
+			--top-col-4: 360px;   /* Per case / Top fails */
+		}
+
+
+		/* =====================================================================
+		   2) BASEREGELS / RESET-ACHTIGE STIJL
+		   ===================================================================== */
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			padding: 24px;
+			font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			background:
+				radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 24%),
+				radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 22%),
+				linear-gradient(180deg, #0b1120 0%, #111827 100%);
+			color: var(--text);
+			min-height: 100vh;
+		}
+
+		h1 {
+			margin: 0 0 18px 0;
+			font-size: 2rem;
+			letter-spacing: 0.03em;
+			color: #f8fafc;
+			text-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
+		}
+
+		/*
+		Zorgt dat form-elementen en gewone blokken hetzelfde lettertype erven.
+		Dat vermijdt dat een <select> of <button> er anders uitziet dan de rest.
+		*/
+		label, select, button, input, div {
+			font: inherit;
+		}
+
+		select,
+		button {
+			border-radius: 12px;
+			border: 1px solid var(--border);
+		}
+
+		button {
+			padding: 10px 14px;
+			background: linear-gradient(180deg, #182233 0%, #0f172a 100%);
+			color: var(--text);
+			cursor: pointer;
+			box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08), 0 8px 20px rgba(0, 0, 0, 0.25);
+			transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+		}
+
+		button:hover:not(:disabled) {
+			transform: translateY(-1px);
+			border-color: var(--neon-cyan);
+			box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25), 0 0 18px rgba(34, 211, 238, 0.12);
+		}
+
+		button:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+
+		select {
+			background: #0f172a;
+			color: var(--text);
+			padding: 9px 12px;
+		}
+
+		#app {
+			max-width: 1800px;
+			margin: 0 auto;
+		}
+
+
+		/* =====================================================================
+		   3) HERBRUIKBARE PANEEL- EN TEKSTSTIJL
+		   ===================================================================== */
+		.card {
+			background: linear-gradient(180deg, rgba(31, 41, 55, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+			border: 1px solid var(--border);
+			border-radius: 18px;
+			padding: 16px;
+			box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+		}
+
+		.card-title {
+			font-size: 0.95rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			margin-bottom: 10px;
+			color: var(--neon-cyan);
+		}
+
+		.muted {
+			color: var(--muted);
+			font-size: 0.92rem;
+		}
+
+
+		/* =====================================================================
+		   4) TOOLBAR BOVENAAN
+		   =====================================================================
+		   De toolbar groepeert:
+		   - trainingsmodus dropdown
+		   - actieve trainingset info
+		   - subtiele versie/label rechts
+		*/
+		.toolbar {
+			display: flex;
+			justify-content: space-between;
+			gap: 16px;
+			align-items: end;
+			flex-wrap: wrap;
+			margin-bottom: 18px;
+		}
+
+		.toolbar-left {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			flex-wrap: wrap;
+		}
+
+		#trainingSetInfo {
+			color: var(--muted);
+			font-size: 0.92rem;
+			padding-left: 8px;
+			border-left: 1px solid rgba(148, 163, 184, 0.25);
+		}
+
+		#trainingMode {
+			min-width: 260px;
+			appearance: auto;
+			-webkit-appearance: menulist;
+		}
+
+		/*
+		Bewust expliciet gestyled: sommige browsers tonen options vreemd
+		in dark mode als dit niet gezet wordt.
+		*/
+		#trainingMode option {
+			color: #111827;
+			background: #ffffff;
+		}
+
+		.control-line,
+		.action-line {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		#trainingModeBox {
+			min-width: 0;
+		}
+
+		/*
+		Dubbeling uit oudere tussenstappen - functioneel niet nodig naast de
+		bovenstaande definitie van .control-line / .action-line.
+		Ik laat hem hier uit commentaar als herinnering aan de cleanup.
+
+		.control-line {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			flex-wrap: wrap;
+			min-width: 0;
+		}
+		*/
+
+
+		/* =====================================================================
+		   5) EERSTE HOOFDRIJ: TOP-DECK
+		   =====================================================================
+		   Dit is de rij met:
+		   - Cube
+		   - Answer grid
+		   - Stats
+		   - Per case
+		*/
+		.top-deck {
+			margin-top: 0;
+			padding: 14px;
+			border: 1px solid rgba(55, 65, 81, 0.9);
+			border-radius: 22px;
+			background: linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(11, 17, 32, 0.65) 100%);
+			box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+		}
+
+		.top-grid {
+			display: grid;
+			grid-template-columns:
+				var(--top-col-1)
+				var(--top-col-2)
+				var(--top-col-3)
+				var(--top-col-4);
+			gap: 18px;
+			align-items: stretch;
+		}
+
+		/*
+		Belangrijk: de cards in de bovenste rij krijgen dezelfde hoogte,
+		waardoor de verticale randen netjes uitlijnen.
+		*/
+		.top-grid > .card {
+			height: 100%;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+		}
+
+		#stats,
+		#roundBox,
+		#hintText,
+		#debugText,
+		#perCaseBox {
+			line-height: 1.6;
+		}
+
+		#stats,
+		#roundBox {
+			line-height: 1.45;
+		}
+
+		#roundBox {
+			margin-top: 12px;
+		}
+
+		#statsPanel {
+			justify-content: flex-start;
+		}
+
+		#perCasePanel {
+			min-height: 0;
+		}
+
+		.stat-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 10px;
+		}
+
+		.stat-pill {
+			background: rgba(11, 18, 32, 0.72);
+			border: 1px solid rgba(55, 65, 81, 0.95);
+			border-radius: 12px;
+			padding: 10px 12px;
+			min-width: 0;
+		}
+
+		.stat-pill-wide {
+			grid-column: 1 / -1;
+		}
+
+		.stat-pill.score   { border-color: rgba(34,197,94,0.4); }
+		.stat-pill.time    { border-color: rgba(245, 158, 11, 0.5); }		/* amber */
+
+		.stat-label {
+			font-size: 0.76rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			color: var(--muted);
+			margin-bottom: 4px;
+		}
+
+		.stat-value {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: #f8fafc;
+			line-height: 1.2;
+		}
+
+		.stat-last {
+			margin-top: 12px;
+			padding: 10px 12px;
+			border-radius: 12px;
+			background: rgba(34, 211, 238, 0.06);
+			border: 1px solid rgba(34, 211, 238, 0.18);
+			line-height: 1.4;
+			color: #e5e7eb;
+		}
+
+		@media (max-width: 760px) {
+			.stat-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.stat-pill-wide {
+				grid-column: auto;
+			}
+		}
+
+		.round-summary {
+			padding: 10px;
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			background: rgba(11, 18, 32, 0.6);
+		}
+
+		.round-summary-title {
+			font-weight: 700;
+			margin-bottom: 8px;
+			color: var(--neon-green);
+		}
+
+		.round-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px 12px;
+			font-size: 13px;
+		}
+
+		.round-summary-missed {
+			margin-top: 8px;
+			font-size: 12px;
+			color: var(--muted);
+			line-height: 1.4;
+		}
+
+		.round-summary-actions {
+			margin-top: 8px;
+			display: flex;
+			gap: 6px;
+			flex-wrap: wrap;
+		}
+
+		.round-summary-actions button {
+			padding: 6px 10px;
+			font-size: 12px;
+		}
+
+		.round-actions {
+			margin-top: 8px;
+			display: flex;
+			gap: 6px;
+			flex-wrap: wrap;
+		}
+
+		.round-actions button {
+			padding: 6px 10px;
+			font-size: 12px;
+		}
+
+		/*
+		De tabel zelf bevat intern al een scrollbare wrapper via JS-rendering.
+		Hier zorgen we vooral dat de card niet layout-technisch “duwt”.
+		*/
+		#perCaseBox {
+			flex: 1 1 auto;
+			min-height: 0;
+			overflow: hidden;
+		}
+
+
+		/* =====================================================================
+		   6) TWEEDE HOOFDRIJ: SECOND-DECK
+		   =====================================================================
+		   Linkerdeel:
+		   - raster van 6 mini chart-vakken (3 x 2)
+		   Rechterdeel:
+		   - top fails panel
+		*/
+		.second-deck {
+			margin-top: 18px;
+			padding: 14px;
+			border: 1px solid rgba(55, 65, 81, 0.9);
+			border-radius: 22px;
+			background: linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(11, 17, 32, 0.65) 100%);
+			box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+		}
+
+		/*
+		De tweede rij gebruikt bewust dezelfde 4 kolommen als de eerste rij,
+		zodat rechterranden perfect uitlijnen.
+		*/
+		.second-grid {
+			display: grid;
+			grid-template-columns:
+				var(--top-col-1)
+				var(--top-col-2)
+				var(--top-col-3)
+				var(--top-col-4);
+			gap: 18px;
+			align-items: stretch;
+		}
+
+		.charts-panel {
+			grid-column: 1 / 4;
+			display: grid;
+			grid-template-columns: 1fr 1fr 1fr;
+			grid-template-rows: auto auto;
+			gap: 18px;
+			align-items: stretch;
+			min-width: 0;
+		}
+
+		.charts-panel > .mini-chart {
+			min-width: 0;
+		}
+
+		.mini-chart {
+			min-height: 220px;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.mini-chart .chart-canvas {
+			margin-top: 4px;
+		}
+
+		.chart-placeholder {
+			flex: 1 1 auto;
+			min-height: 140px;
+			border: 1px dashed #475569;
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: #94a3b8;
+			background: rgba(11, 18, 32, 0.55);
+			font-size: 14px;
+		}
+
+		#aufHeatmapBox {
+			display: grid;
+			grid-template-columns: 34px repeat(4, minmax(0, 1fr));
+			gap: 4px;
+			align-items: center;
+			font-size: 11px;
+		}
+
+		.auf-head {
+			text-align: center;
+			font-weight: 700;
+			color: var(--muted);
+			padding-bottom: 2px;
+			font-size: 10px;
+		}
+
+		.auf-row-label {
+			font-weight: 700;
+			color: #e5e7eb;
+			text-align: right;
+			padding-right: 4px;
+			font-size: 11px;
+		}
+
+		.auf-cell {
+			min-height: 24px;
+			border-radius: 7px;
+			border: 1px solid rgba(55, 65, 81, 0.95);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 1px;
+			padding: 2px 1px;
+			font-weight: 700;
+			font-size: 10px;
+			line-height: 1;
+			background: rgba(11, 18, 32, 0.72);
+			color: #f8fafc;
+			cursor: default;
+			user-select: none;
+		}
+
+		.auf-cell.heat-neutral {
+			background: rgba(71, 85, 105, 0.28);
+			border-color: rgba(71, 85, 105, 0.55);
+			color: #cbd5e1;
+		}
+
+		.auf-cell.heat-good {
+			background: rgba(34, 197, 94, 0.22);
+			border-color: rgba(34, 197, 94, 0.55);
+		}
+
+		.auf-cell.heat-mid {
+			background: rgba(245, 158, 11, 0.20);
+			border-color: rgba(245, 158, 11, 0.50);
+		}
+
+		.auf-cell.heat-bad {
+			background: rgba(239, 68, 68, 0.22);
+			border-color: rgba(239, 68, 68, 0.55);
+		}
+
+		.auf-cell.is-clickable {
+			cursor: pointer;
+		}
+
+		.auf-cell.is-clickable:hover {
+			box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 10px rgba(255,255,255,0.06);
+			transform: translateY(-1px);
+			transition: transform 0.08s ease, box-shadow 0.12s ease;
+		}
+
+		.auf-cell-thumb {
+			width: 100%;
+			max-width: 34px;
+			max-height: 12px;
+			object-fit: contain;
+			display: block;
+			background: #fff;
+			border-radius: 3px;
+		}
+
+		.auf-cell-value {
+			font-size: 9px;
+			font-weight: 700;
+			color: inherit;
+		}
+
+		.auf-zoom-popup {
+			position: fixed;
+			z-index: 9999;
+			background: rgba(15, 23, 42, 0.98);
+			border: 1px solid rgba(55, 65, 81, 0.95);
+			border-radius: 14px;
+			padding: 10px 12px;
+			box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			min-width: 160px;
+			max-width: 220px;
+		}
+
+		.auf-zoom-popup[hidden] {
+			display: none !important;
+		}
+
+		.auf-zoom-popup img {
+			display: block;
+			max-width: 160px;
+			max-height: 72px;
+			background: #fff;
+			border-radius: 8px;
+			padding: 6px 8px;
+		}
+
+		.auf-zoom-popup div {
+			font-size: 11px;
+			line-height: 1.35;
+			color: #e5e7eb;
+			text-align: center;
+		}
+
+		.auf-zoom-popup button {
+			padding: 6px 10px;
+			font-size: 12px;
+		}
+
+		.topfails-panel {
+			grid-column: 4 / 5;
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+			width: 100%;
+		}
+
+		.topfails-panel #topFailPatterns {
+			flex: 0 0 auto;
+		}
+
+
+		/* =====================================================================
+		   7) ONDERSTE HULPSECTIES
+		   =====================================================================
+		   bottom-grid = hint + hint visual
+		   stack       = debug box eronder
+		*/
+		.bottom-grid {
+			display: grid;
+			grid-template-columns: minmax(320px, 2fr) minmax(240px, 1fr);
+			gap: 18px;
+			margin-top: 18px;
+		}
+
+		.stack {
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+			margin-top: 18px;
+		}
+
+		#trainingSetInfo,
+		#revealHint {
+			color: var(--muted);
+			font-size: 0.92rem;
+		}
+
+		#hintVisualImg {
+			max-width: 100%;
+			height: auto;
+			max-height: 90px;
+			padding: 6px 10px;
+			background: #f8fafc;
+			border-radius: 12px;
+		}
+
+
+		/* =====================================================================
+		   8) CUBE / TIMER / ANTWOORDSECTIE
+		   ===================================================================== */
+		#cube {
+			display: block;
+			width: 280px;
+			height: 280px;
+			max-width: 100%;
+			margin: 14px auto 0 auto;
+			background: #fff;
+			border-radius: 18px;
+			box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 0 24px rgba(96, 165, 250, 0.14);
+		}
+
+		#cube.cube-neutral {
+			border: 3px solid #475569;
+		}
+
+		#cube.cube-correct {
+			border: 6px solid var(--neon-green);
+			box-shadow: 0 0 22px rgba(34, 197, 94, 0.45);
+		}
+
+		#cube.cube-wrong {
+			border: 6px solid var(--neon-red);
+			box-shadow: 0 0 22px rgba(244, 63, 94, 0.4);
+		}
+
+		#cube.cube-timeout {
+			border: 6px solid var(--neon-amber);
+			box-shadow: 0 0 22px rgba(245, 158, 11, 0.4);
+		}
+
+		#timerBarWrap {
+			width: 100%;
+			height: 12px;
+			background: #2b2f3a;
+			border-radius: 999px;
+			overflow: hidden;
+			border: 1px solid #3b4252;
+			margin: 10px 0 14px 0;
+		}
+
+		#timerBar {
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(90deg, #22d3ee, #3b82f6);
+			transition: width 0.1s linear, background 0.2s ease;
+		}
+
+		#timerBar.warning {
+			background: linear-gradient(90deg, #f59e0b, #ef4444);
+		}
+
+		#answerBox {
+			margin-top: 8px;
+			font-weight: 700;
+			color: #f8fafc;
+			min-height: 24px;
+		}
+
+
+		/* =====================================================================
+		   9) ANSWER GRID + HEATMAP KNOPPEN
+		   ===================================================================== */
+		#answers {
+			display: grid;
+			grid-template-columns: repeat(5, minmax(72px, 1fr));
+			grid-template-rows: repeat(6, minmax(38px, auto));
+			gap: 10px;
+		}
+
+		#answers button {
+			width: 100%;
+			min-height: 38px;
+			padding: 8px 0;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+		}
+
+		.answer-btn {
+			border-radius: 10px;
+			border: 1px solid #3f3f46;
+			color: #f5f5f5;
+			font-weight: 600;
+			transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+		}
+
+		.answer-btn:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 0 10px rgba(255,255,255,0.08);
+		}
+
+		#answers button.answer-btn.heat-neutral {
+			background: #2b2f3a;
+		}
+
+		#answers button.answer-btn.heat-good {
+			background: rgba(34, 197, 94, 0.22);
+			border-color: rgba(34, 197, 94, 0.55);
+			box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.18);
+		}
+
+		#answers button.answer-btn.heat-mid {
+			background: rgba(245, 158, 11, 0.20);
+			border-color: rgba(245, 158, 11, 0.50);
+			box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.15);
+		}
+
+		#answers button.answer-btn.heat-bad {
+			background: rgba(239, 68, 68, 0.22);
+			border-color: rgba(239, 68, 68, 0.55);
+			box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.16);
+		}
+
+
+		/* =====================================================================
+		   10) TOP FAILS BLOK
+		   ===================================================================== */
+		.top-fail-list {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.top-fail-row {
+			display: grid;
+			grid-template-columns: 26px 42px 56px 1fr;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 8px;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			background: #0b1220;
+			font-size: 13px;
+		}
+
+		.top-fail-rank {
+			font-weight: 700;
+			opacity: 0.75;
+		}
+
+		.top-fail-case {
+			font-weight: 700;
+		}
+
+		.top-fail-count {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+			opacity: 0.85;
+		}
+
+		.top-fail-thumb {
+			justify-self: end;
+			max-width: 96px;
+			max-height: 28px;
+			background: white;
+			border: none;
+			display: block;
+		}
+
+
+		/* =====================================================================
+		   11) GRAFIEK-CANVASSEN
+		   ===================================================================== */
+		.chart-canvas {
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			background: #0b1220;
+			display: block;
+			width: 100%;
+			max-height: 180px;
+		}
+
+		.mini-chart-wide {
+			grid-column: 1 / -1;
+			min-height: 300px;
+		}
+
+		.accuracy-wide {
+			grid-column: 1 / -1;
+			min-height: 320px;
+		}
+
+		.accuracy-case-panel {
+			grid-column: 1 / 3;   /* twee kolommen breed */
+			grid-row: 2 / 3;
+			min-height: 300px;
+		}
+
+		.auf-heatmap-panel {
+			grid-column: 3 / 4;   /* derde kolom */
+			grid-row: 1 / 3;      /* over beide rijen */
+			min-height: 100%;
+		}
+
+		#caseAccuracyPanel .chart-canvas {
+			width: 100%;
+			height: auto;
+			max-height: none;
+		}
+
+		/*
+		Verouderd uit een eerdere layoutfase.
+		De app gebruikt nu second-deck + charts-panel, niet meer charts-row.
+		Je kan dit later waarschijnlijk definitief verwijderen.
+
+		.charts-row {
+			display: grid;
+			grid-template-columns: repeat(2, max-content);
+			justify-content: center;
+			gap: 24px;
+			margin-top: 18px;
+			align-items: start;
+		}
+
+		.charts-row .card {
+			width: 420px;
+			max-width: 100%;
+		}
+		*/
+
+
+		/* =====================================================================
+		   12) RESPONSIVE REGELS
+		   =====================================================================
+		   Hier worden de grids eenvoudiger op smallere schermen.
+		*/
+		@media (max-width: 1400px) {
+			.top-grid {
+				grid-template-columns: minmax(280px, 340px) minmax(420px, 1fr) minmax(280px, 360px);
+			}
+
+			#perCasePanel {
+				grid-column: 1 / -1;
+			}
+		}
+
+		@media (max-width: 1200px) {
+			.top-grid,
+			.second-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.charts-panel,
+			.topfails-panel {
+				grid-column: auto;
+			}
+
+			.charts-panel {
+				grid-template-columns: 1fr;
+			}
+
+			.accuracy-wide {
+				grid-column: auto;
+			}
+		}
+
+		@media (max-width: 980px) {
+			.top-grid,
+			.bottom-grid {
+				grid-template-columns: 1fr;
+			}
+
+			#cube {
+				margin-left: 0;
+				margin-right: 0;
+			}
+		}
+
+		@media (max-width: 760px) {
+			.charts-panel {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		/*
+		Nog een oude media-query uit de vroegere charts-row-opzet.
+		Niet meer nodig zolang .charts-row nergens meer gebruikt wordt.
+
+		@media (max-width: 980px) {
+			.charts-row {
+				grid-template-columns: 1fr;
+			}
+		}
+		*/
+	</style>
+</head>
+<body>
+	<div id="app">
+		<h1>PLL Trainer</h1>
+
+		<!-- ================================================================
+		     TOOLBAR
+		     ---------------------------------------------------------------
+		     Links:
+		     - dropdown trainingsmodus
+		     - actieve trainingset
+		     Rechts:
+		     - subtiele label / versieaanduiding
+		     ================================================================ -->
+		<div class="toolbar card">
+			<div class="toolbar-left">
+				<div class="control-line" id="trainingModeBox">
+					<label for="trainingMode"><b>Training mode:</b></label>
+					<select id="trainingMode">
+						<option value="all">All PLL</option>
+						<option value="worst5">Worst 5</option>
+						<option value="worst8">Worst 8</option>
+						<option value="mistakes">Mistakes from previous round</option>
+					</select>
+				</div>
+				<div id="trainingSetInfo"></div>
+			</div>
+
+			<div class="muted">Recognition layout v2</div>
+		</div>
+
+
+		<!-- ================================================================
+		     TOP-DECK = HOOFDRIJ 1
+		     ---------------------------------------------------------------
+		     1) Cube
+		     2) Answer grid
+		     3) Stats
+		     4) Per case
+		     ================================================================ -->
+		<div class="top-deck">
+			<div class="top-grid">
+				<div class="card">
+					<div class="card-title">Cube</div>
+					<label>
+						<input type="checkbox" id="toggleLL" checked />
+						Show last layer only
+					</label>
+
+					<img id="cube" alt="cube" />
+
+					<div id="timerBarWrap">
+						<div id="timerBar"></div>
+					</div>
+
+					<div class="action-line" style="margin-top:14px;">
+						<button id="revealNow" type="button">Show answer</button>
+						<button id="nextBtn" type="button">Next</button>
+					</div>
+
+					<div id="revealHint" style="margin-top:10px;"></div>
+					<div id="answerBox"></div>
+				</div>
+
+				<div class="card">
+					<div class="card-title">Answer grid</div>
+					<div id="answers"></div>
+				</div>
+
+				<div class="card">
+					<div class="card-title">Stats</div>
+					<div id="stats"></div>
+					<button id="resetStats" type="button" style="margin-top:12px;">Reset stats</button>
+					<div id="roundBox" style="margin-top:12px;"></div>
+				</div>
+
+				<div class="card" id="perCasePanel">
+					<div class="card-title">Per case</div>
+					<div id="perCaseBox"></div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- ================================================================
+		     SECOND-DECK = HOOFDRIJ 2
+		     ---------------------------------------------------------------
+		     Links: 6 grafiekvakken in 3x2-structuur
+		     Rechts: Top 5 fails
+		     ================================================================ -->
+		<div class="second-deck">
+			<div class="second-grid">
+				<div class="charts-panel">
+					<div class="mini-chart card" id="accuracyRoundPanel"
+						title="Toont de nauwkeurigheid per ronde (percentage correcte antwoorden). Elke punt/balk is één ronde.">
+						<div class="card-title">Accuracy per round</div>
+						<canvas id="accuracyCanvas" class="chart-canvas" width="320" height="180"></canvas>
+					</div>
+
+					<div class="mini-chart card" id="rollingAvgPanel"
+						title="Toont de gemiddelde oplostijd (in seconden) van recente correcte antwoorden. Geeft je snelheidstrend weer.">
+						<div class="card-title">Rolling avg time</div>
+						<canvas id="rollingAvgCanvas" class="chart-canvas" width="320" height="180"></canvas>
+					</div>
+
+					<div class="mini-chart card auf-heatmap-panel" id="aufHeatmapPanel"
+						title="Heatmap van je prestaties per AUF. Elke rij is een AUF, elke cel is een case binnen die AUF.
+
+							Groen: ≥ 85% correct  
+							Oranje: 60% – 84%  
+							Rood: < 60%  
+							Grijs: onvoldoende data
+
+							Klik op een cel om de situatie visueel te bekijken en te oefenen.">
+						<div class="card-title">AUF heatmap</div>
+						<div id="aufHeatmapBox"></div>
+					</div>
+
+					<div class="mini-chart card accuracy-case-panel" id="caseAccuracyPanel"
+						title="Toont de nauwkeurigheid per PLL-case (over alle AUFs samen).
+
+							Groen: ≥ 85% correct  
+							Oranje: 60% – 84%  
+							Rood: < 60%  
+							Grijs: onvoldoende data">
+						<div class="card-title">Accuracy per case</div>
+						<canvas id="caseAccuracyCanvas" width="640" height="260"></canvas>
+					</div>
+				</div>
+
+				<div class="topfails-panel card" 
+					title="Toont de 5 case+AUF combinaties met de meeste fouten (incorrect + timeouts).
+
+						Handig om snel je zwakste situaties te identificeren.">
+					<div class="card-title">Top 5 fails</div>
+					<canvas id="topFailsCanvas" class="chart-canvas" width="320" height="140"></canvas>
+					<div id="topFailPatterns" style="margin-top:10px;"></div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- ================================================================
+		     ONDERSTE HULPSECTIES
+		     ================================================================ -->
+		<div class="bottom-grid">
+			<div class="card" id="hintBox">
+				<div class="card-title">Hint</div>
+				<div id="hintText">No hint yet</div>
+			</div>
+
+			<div class="card" id="hintVisualBox">
+				<div class="card-title">Hint visual</div>
+				<img id="hintVisualImg" alt="Hint visual" />
+			</div>
+		</div>
+
+		<div class="stack">
+			<div class="card" id="debugBox">
+				<div class="card-title">Debug</div>
+				<div id="debugText">No debug info yet</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Hieronder staan elementen die aanvankelijk verborgen zijn, maar die JS later kan tonen als popups of modals. -->
+	<div id="aufZoomPopup" class="auf-zoom-popup" hidden>
+		<img id="aufZoomImg" alt="AUF zoom" />
+		<div id="aufZoomText"></div>
+		<button id="aufZoomReviewBtn" type="button">Review this case</button>
+	</div>
+
+	<!--
+	De HTML zelf bevat bijna geen gedrag. Dat zit in de externe JS.
+	Deze pagina levert vooral de containers met id's waar JS later inhoud in zet.
+	-->
+	<script src="plltrainer_annotated_cleaned_nl.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="91mm"
+   height="16mm"
+   viewBox="0 0 91 16"
+   version="1.1"
+   id="CasesSVG"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="HintCases"
+     transform="translate(-251.45413,-134.32037)">
+    <g
+       id="Ab_U2"
+       transform="translate(222,114)">
+      <rect
+         style="fill:#ff9900;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect504"
+         width="15"
+         height="15"
+         x="89.954147"
+         y="20.820374" />
+      <rect
+         style="fill:#ff9900;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect505"
+         width="15"
+         height="15"
+         x="29.954128"
+         y="20.820374" />
+      <rect
+         style="fill:#00d400;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect506"
+         width="15"
+         height="15"
+         x="44.954136"
+         y="20.820374" />
+      <rect
+         style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect507"
+         width="15"
+         height="15"
+         x="74.954147"
+         y="20.820374" />
+      <rect
+         style="fill:#0000ff;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect508"
+         width="15"
+         height="15"
+         x="59.954144"
+         y="20.820374" />
+      <rect
+         style="fill:#ff9900;fill-opacity:1;stroke:none;stroke-width:0.499999;paint-order:stroke fill markers;stop-color:#000000"
+         id="rect509"
+         width="15"
+         height="15"
+         x="104.95415"
+         y="20.820374" />
+      <path
+         id="path509"
+         style="font-variation-settings:normal;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="M 119.95413,20.820368 H 29.954127 v 15 h 89.999993 z" />
+      <path
+         style="font-variation-settings:normal;fill:#e6e6e6;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="m 104.95413,20.820368 v 15"
+         id="path510" />
+      <path
+         style="font-variation-settings:normal;fill:#e6e6e6;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="m 89.954124,20.820368 v 15"
+         id="path511" />
+      <path
+         style="font-variation-settings:normal;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="m 74.954124,20.820368 v 15"
+         id="path512" />
+      <path
+         style="font-variation-settings:normal;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="m 59.954124,20.820368 v 15"
+         id="path513" />
+      <path
+         style="font-variation-settings:normal;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+         d="m 44.954124,20.820368 v 15"
+         id="path514" />
+    </g>
+  </g>
+</svg>
