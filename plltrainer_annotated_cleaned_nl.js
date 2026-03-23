@@ -794,7 +794,7 @@ function visualcubeUrl(alg, auf = "", cubeYRotation = "") {
 	const fullAlg = parts.join(" ");
 	console.log("full Alg:", fullAlg);
 
-	const base = "http://localhost:8080/visualcube.php";
+	const base = "https://visualcube.api.cubing.net/visualcube.php";
 	const params = new URLSearchParams({
 		fmt: "svg",
 		pzl: "3",
